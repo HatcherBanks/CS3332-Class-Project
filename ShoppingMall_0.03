@@ -5,6 +5,14 @@ from tkinter import messagebox
 import mysql.connector
 #import pandas as pd
 
+class CataloguePage:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Shopping Mall")
+        self.root.geometry("1550x800+0+0")
+        frame=Frame(self.root, bg="black")
+        frame.place(x=150, y=50, width=700, height=500)
+
 class LoginPage:
     def __init__(self, root):
         self.root = root
@@ -43,8 +51,6 @@ class LoginPage:
     def login(self):
         if self.userText.get() == "" or self.passText.get() == "":
             messagebox.showerror("Error", "All fields required")
-        elif self.userText.get() == "admin" and self.passText.get() == "admin123":
-             messagebox.showinfo("Test","Successful Login!")
         else:
             conn=mysql.connector.connect(host="localhost",
              user="root", 
@@ -56,12 +62,14 @@ class LoginPage:
                 self.password.get()
             ))
             row=mycursor.fetchone()
-            if row != None:
+            if row == None:
                 messagebox.showerror("Error", "Invalid username or Password")
             else:
-                messagebox.showinfo("Success", "Login Successful")
-                conn.commit()
-                conn.close()
+                #messagebox.showinfo("Success", "Login Successful")
+                self.openCatalogue = Toplevel(self.root)
+                self.app=CataloguePage(self.openCatalogue)
+            conn.commit()
+            conn.close()
 
 
 
@@ -139,9 +147,6 @@ class RegisterPage:
                 conn.commit()
                 conn.close()
                 messagebox.showinfo("Registration Successful", "Account created successfully")
-
-
-
 
 root=Tk()
 app=LoginPage(root)
