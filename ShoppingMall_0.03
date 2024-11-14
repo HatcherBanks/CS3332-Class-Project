@@ -1,0 +1,148 @@
+import tkinter as tk
+from tkinter import *
+from tkinter import ttk
+from tkinter import messagebox
+import mysql.connector
+#import pandas as pd
+
+class LoginPage:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Log In")
+        self.root.geometry("1550x800+0+0")
+        frame=Frame(self.root, bg="black")
+        frame.place(x=610, y=170, width=340, height=450)
+
+        self.username = StringVar()
+        self.password = StringVar()
+
+        headerLabel = Label(frame, text ="Sign in", font = ("times new roman", 20, "bold"), fg = "white", bg = "black")
+        headerLabel.place(x=125, y=50)
+
+        usernameLabel = Label(frame, text ="Username", font = ("times new roman", 15, "bold"), fg = "white", bg = "black")
+        usernameLabel.place(x=70, y=155)
+        self.userText = ttk.Entry(frame,textvariable=self.username,font = ("times new roman", 15, "bold"))
+        self.userText.place(x=40, y=180, width = 270)
+
+        passwordLabel = Label(frame, text ="Password", font = ("times new roman", 15, "bold"), fg = "white", bg = "black")
+        passwordLabel.place(x=70, y=250)
+        self.passText = ttk.Entry(frame,textvariable=self.password,font = ("times new roman", 15, "bold"))
+        self.passText.place(x=40, y=275, width = 270)
+
+        loginButt = Button(frame, command= self.login, text = "Login", font = ("times new roman", 15, "bold"))
+        loginButt.place(x=150, y=320, height = 25)
+
+        RegisterButt = Button(frame,command=self.register, text = "Register", font = ("times new roman", 15, "bold"))
+        RegisterButt.place(x=138, y=350, height = 25)
+
+    def register(self):
+        self.openRegister = Toplevel(self.root)
+        self.app=RegisterPage(self.openRegister)
+
+
+    def login(self):
+        if self.userText.get() == "" or self.passText.get() == "":
+            messagebox.showerror("Error", "All fields required")
+        elif self.userText.get() == "admin" and self.passText.get() == "admin123":
+             messagebox.showinfo("Test","Successful Login!")
+        else:
+            conn=mysql.connector.connect(host="localhost",
+             user="root", 
+             password="root", 
+             db="malldata")
+            mycursor=conn.cursor()     
+            mycursor.execute("select * from customerinfo where username=%s and password=%s",(
+                self.username.get(),
+                self.password.get()
+            ))
+            row=mycursor.fetchone()
+            if row != None:
+                messagebox.showerror("Error", "Invalid username or Password")
+            else:
+                messagebox.showinfo("Success", "Login Successful")
+                conn.commit()
+                conn.close()
+
+
+
+class RegisterPage:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Register")
+        self.root.geometry("960x720+0+0")
+        frame=Frame(self.root, bg="black")
+        frame.place(x=150, y=50, width=700, height=500)
+
+        self.firstname = StringVar()
+        self.lastname = StringVar()
+        self.username = StringVar()
+        self.password = StringVar()
+        self.passwordConfirm = StringVar()
+
+        headerLabel = Label(frame, text ="Register", font = ("times new roman", 20, "bold"), fg = "white", bg = "black")
+        headerLabel.place(x=300, y=50)
+
+        firstnameLabel = Label(frame, text ="First Name", font = ("times new roman", 15, "bold"), fg = "white", bg = "black")
+        firstnameLabel.place(x=60, y=155)
+        self.firstnameText = ttk.Entry(frame,textvariable=self.firstname,font = ("times new roman", 15, "bold"))
+        self.firstnameText.place(x=40, y=180, width = 270)
+
+        lastnameLabel = Label(frame, text ="Last Name", font = ("times new roman", 15, "bold"), fg = "white", bg = "black")
+        lastnameLabel.place(x=60, y=250)
+        self.lastnameText = ttk.Entry(frame,textvariable=self.lastname,font = ("times new roman", 15, "bold"))
+        self.lastnameText.place(x=40, y=275, width = 270)
+
+        usernameLabel = Label(frame, text ="New Username", font = ("times new roman", 15, "bold"), fg = "white", bg = "black")
+        usernameLabel.place(x=400, y=155)
+        self.userText = ttk.Entry(frame,textvariable=self.username,font = ("times new roman", 15, "bold"))
+        self.userText.place(x=380, y=180, width = 270)
+
+        passwordLabel = Label(frame, text ="New Password", font = ("times new roman", 15, "bold"), fg = "white", bg = "black")
+        passwordLabel.place(x=400, y=250)
+        self.passText = ttk.Entry(frame,textvariable=self.password,font = ("times new roman", 15, "bold"))
+        self.passText.place(x=380, y=275, width = 270)
+
+        passwordLabel2 = Label(frame, text ="Confirm Password", font = ("times new roman", 15, "bold"), fg = "white", bg = "black")
+        passwordLabel2.place(x=400, y=325)
+        self.passText2 = ttk.Entry(frame,textvariable=self.passwordConfirm,font = ("times new roman", 15, "bold"))
+        self.passText2.place(x=380, y=350, width = 270)
+
+        RegisterButt = Button(frame, command=self.register, text = "Register", font = ("times new roman", 15, "bold"))
+        RegisterButt.place(x=300, y=425, height = 35, width = 100)
+
+    def register(self):
+        if self.username.get() == "" or self.password.get() == "":
+            messagebox.showerror("Error", "All fields required")
+        elif self.password.get() != self.passwordConfirm.get():
+            messagebox.showerror("Error", "Passwords do not match")   
+        elif self.userText.get() == "admin" and self.passText.get() == "admin123":
+             messagebox.showinfo("Test","Registration Successful!")
+        else:
+            conn=mysql.connector.connect(host="localhost",
+             user="root", 
+             password="root", 
+             db="malldata")
+            mycursor=conn.cursor()
+            query=("select * from customerinfo where username=%s")
+            value=(self.username.get(),)
+            mycursor.execute(query, value)
+            row=mycursor.fetchone()
+            if row != None:
+                messagebox.showerror("Error", "Account already exists")
+            else:
+                mycursor.execute("insert into customerinfo values(%s,%s,%s,%s)",(
+                 self.firstname.get(),
+                 self.lastname.get(), 
+                 self.username.get(), 
+                 self.password.get() 
+                 ))
+                conn.commit()
+                conn.close()
+                messagebox.showinfo("Registration Successful", "Account created successfully")
+
+
+
+
+root=Tk()
+app=LoginPage(root)
+root.mainloop()
