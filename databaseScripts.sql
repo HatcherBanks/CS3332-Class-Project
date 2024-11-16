@@ -1,10 +1,15 @@
 -- 1. Item Catalog Table
-CREATE TABLE ItemCatalog (
-    itemID INT PRIMARY KEY,
-    itemName VARCHAR(100) NOT NULL,
-    price DECIMAL(10, 2) NOT NULL,
-    description TEXT
+CREATE TABLE catalog_items (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    price VARCHAR(50) NOT NULL
 );
+
+-- example items
+INSERT INTO catalog_items (name, price) VALUES
+('Laptop', '$999'),
+('Smartphone', '$699'),
+('Headphones', '$199');
 
 -- 2. Staff Table
 CREATE TABLE Staff (
