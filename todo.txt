@@ -1,0 +1,16 @@
+TODO List
+# This is just so I can keep things on track
+
+[ ] Login Page
+[ ] Sign Up Page
+[ ] Payment Page
+[ ] Payment Function
+[ ] Staff-Customer Message Function
+
+Stuff I, Hatcher, am going to work on in the next week:
+
+[ ] Item Catalog Page               # Refine
+[ ] Edit Catalog Function           # Not done
+[ ] View Wishlist Function          # Refine
+[ ] Like Item Function              # Not done
+[ ] Sort by Likes Function          # Not done
