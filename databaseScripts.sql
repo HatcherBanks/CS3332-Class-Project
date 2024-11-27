@@ -20,8 +20,14 @@ CREATE TABLE Staff (
 
 -- 3. Customer Table
 CREATE TABLE Customer (
-    customerID INT PRIMARY KEY,
-    customerName VARCHAR(100) NOT NULL,
+    customerID INT PRIMARY KEY AUTO_INCREMENT,
+    customerFirstName VARCHAR(100) NOT NULL,
+    customerLastName VARCHAR(100) NOT NULL,
     email VARCHAR(100) NOT NULL UNIQUE,
-    phoneNumber VARCHAR(15)
+    phoneNumber VARCHAR(15),
+    username VARCHAR(100) NOT NULL,
+    password VARCHAR(100) NOT NULL
 );
+
+INSERT INTO Customer (customerID, customerFirstName, customerLastName, email, username, password) VALUES
+('123', 'Admin', 'User', 'admin@example.com', 'admin', 'admin123');
