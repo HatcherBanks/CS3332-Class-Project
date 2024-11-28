@@ -29,5 +29,6 @@ CREATE TABLE Customer (
     password VARCHAR(100) NOT NULL
 );
 
+-- example user
 INSERT INTO Customer (customerID, customerFirstName, customerLastName, email, username, password) VALUES
 ('123', 'Admin', 'User', 'admin@example.com', 'admin', 'admin123');
