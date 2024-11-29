@@ -3,14 +3,15 @@ CREATE TABLE catalog_items (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     price VARCHAR(50) NOT NULL,
-    quantity VARCHAR(50) NOT NULL
+    quantity VARCHAR(50) NOT NULL,
+    likes VARCHAR(50)
 );
 
 -- example items
-INSERT INTO catalog_items (name, price) VALUES
-('Laptop', '$999'),
-('Smartphone', '$699'),
-('Headphones', '$199');
+INSERT INTO catalog_items (name, price, likes) VALUES
+('Laptop', '$999', 20),
+('Smartphone', '$699', 2),
+('Headphones', '$199', 15);
 
 -- 2. Staff Table
 CREATE TABLE Staff (

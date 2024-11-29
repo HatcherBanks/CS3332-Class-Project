@@ -31,6 +31,9 @@ class CatalogPage:
         title = tk.Label(self.frame, text="Store Catalog", font=("Arial", 16, "bold"), bg="black")
         title.pack(pady=10)
         
+        self.sort_button = tk.Button(self.frame, text="Sort by Likes", bg="white", fg="black", command=self.sort_catalog)
+        self.sort_button.pack(pady=10)
+
         #admin controls
         if self.is_admin:
             admin_frame = tk.Frame(self.root, bg="black")
@@ -49,7 +52,7 @@ class CatalogPage:
             self.frame, text="View Cart", bg="white", fg="black", font=("Arial", 12),
             command=self.view_cart
         )
-        view_cart_button.pack(pady=10)
+        view_cart_button.pack(pady=20)
         
         self.display_catalog()
         
@@ -65,11 +68,7 @@ class CatalogPage:
             print(f"Error: {err}")
             return False
 
-
     def display_catalog(self):
-        for widget in self.frame.winfo_children():
-            widget.destroy()
-
         for item in self.catalog_items:
             item_frame = tk.Frame(self.frame, bg="black", pady=5)
             item_frame.pack(fill="x", pady=5)
@@ -77,13 +76,67 @@ class CatalogPage:
             item_label = tk.Label(item_frame, text=f"{item['name']} - ${item['price']}", font=("Arial", 12), bg="black", fg="white")
             item_label.pack(side="left")
 
+            like_button = tk.Button(
+                item_frame, text="Like", bg="white", fg="black",
+                command=lambda item=item: self.like_item(item)
+            )
+            like_button.pack(side="left")
+
+
             buy_button = tk.Button(
                 item_frame, text="Add to Wishlist", bg="white", fg="black",
                 command=lambda item=item: self.add_to_cart(item)
             )
             buy_button.pack(side="right")
+
         
-        self.item_frames = self.frame.winfo_children()
+    def like_item(self, item):
+        try:
+            connection = get_db_connection()
+            cursor = connection.cursor()
+            
+            cursor.execute("UPDATE catalog_items SET likes = likes + 1 WHERE name = %s", (item['name'],))
+            connection.commit()
+            cursor.close()
+            connection.close()
+            
+            self.catalog_items = self.fetch_catalog_items()
+            
+            self.refresh_catalog_display()
+
+            messagebox.showinfo("Success", f"You liked {item['name']}!")
+
+        except mysql.connector.Error as err:
+            messagebox.showerror("Error", f"Database Error: {err}")
+    
+    def refresh_catalog_display(self):
+        for widget in self.frame.winfo_children():
+            widget.destroy()
+        
+        title = tk.Label(self.frame, text="Store Catalog", font=("Arial", 16, "bold"), bg="black")
+        title.pack(pady=10)
+        
+        self.display_catalog()
+        
+        self.sort_button = tk.Button(self.frame, text="Sort by Likes", bg="white", fg="black", command=self.sort_catalog)
+        self.sort_button.pack(pady=10)
+        
+        view_cart_button = tk.Button(
+        self.frame, text="View Cart", bg="white", fg="black", font=("Arial", 12),
+        command=self.view_cart
+        )
+        view_cart_button.pack(pady=20)
+        
+    def sort_catalog(self):
+        try:
+            with get_db_connection as connection:
+                cursor = connection.cursor(dictionary=True)
+                cursor.execute("SELECT name, price, like FROM catalog_items")
+                return cursor.fetchall()
+        
+        except mysql.connector.Error as err:
+            messagebox.showerror("Database Error", f"Error: {err}")
+            return []
 
     #admin functionalities
     def add_item_window(self):
@@ -131,7 +184,16 @@ class CatalogPage:
         try:
             connection = get_db_connection()
             cursor = connection.cursor()
-
+            
+            cursor.execute("SELECT COUNT(*) FROM catalog_items WHERE name = %s", (name,))
+            result = cursor.fetchone()
+        
+            if result[0] > 0:  # If the count is greater than 0, the item exists
+                messagebox.showerror("Error", "Item already exists in the catalog.")
+                cursor.close()
+                connection.close()
+                return
+        
             cursor.execute("INSERT INTO catalog_items (name, price, quantity) VALUES (%s, %s, %s)", 
                 (name, price, int(quantity)))
             connection.commit()
@@ -141,12 +203,16 @@ class CatalogPage:
             messagebox.showinfo("Success", "Item added successfully!")
             window.destroy()
             self.display_catalog()
+        
         except mysql.connector.Error as err:
             messagebox.showerror("Error", f"Database Error: {err}")
 
     def modify_item(self, name, price, quantity, window):
         if not name:
             messagebox.showerror("Error", "Item name is required.")
+            return
+        if int(quantity) < 0:
+            messagebox.showerror("Error", "Quantity cannot be less than 0.")
             return
 
         try:
@@ -191,7 +257,9 @@ class CatalogPage:
             with get_db_connection() as connection:
                 cursor = connection.cursor(dictionary=True)
                 cursor.execute("SELECT name, price FROM catalog_items")
-                return cursor.fetchall()
+                items = cursor.fetchall()
+                print(items)
+                return items
         except mysql.connector.Error as err:
             messagebox.showerror("Database Error", f"Error: {err}")
             return []
@@ -292,7 +360,9 @@ class PaymentPage:
     def confirm_payment(self):
         if not all([self.cardNumber.get(), self.cardName.get(), self.cardExp.get(), self.cardSecCode.get()]):
             messagebox.showerror("Error", "All fields are required.")
-        else:
+        
+        if len(self.cardNumber.get()) != 16 or not self.cardNumber.get().isdigit():
+            messagebox.showerror("Error", "Card number is not correct.")
             messagebox.showinfo("Payment", "Payment successful! Thank you for your purchase.")
             self.root.destroy()
 
