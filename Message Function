@@ -1,1 +1,82 @@
+message_button = tk.Button(self.root, text = "Inbox", command=self.view_messages(username))
+message_button.pack(padx = 5, pady = 10)
 
+
+def view_messages(self, username = None):
+        message_window = tk.Toplevel(self.root)
+        message_window.title("Inbox")
+        message_window.geometry("800x500")
+        
+        self.message_contents = StringVar()
+
+        title = tk.Label(message_window,textvariable=self.message_contents, text="Inbox", font=("Arial", 16, "bold"))
+        title.pack(pady=10)
+
+        message_entry = tk.Entry(message_window,font = ("Arial", 12), width = 75)
+        message_entry.pack(pady = 10)
+        self.show_messages = self.fetch_messages()
+        
+        def send_message(username, contents):
+            connection = get_db_connection
+            cursor = connection.cursor(dictionary=True)
+            cursor.execute("INSERT INTO messages (sender, contents) VALUES (%s, %s)",
+                       (username, contents))
+            connection.commit()
+            connection.close()
+
+        compose = tk.Button(message_window, text= "Compose", command=send_message(username, self.message_contents))
+        compose.pack(padx= 5)
+
+
+
+
+        if self.is_admin:
+            for item in self.show_messages:
+                message_frame = tk.Frame(message_window, bg="black", pady=5)
+                message_frame.pack(fill="x", pady=5)
+                if item['receiver'] == None:
+                    message_label = tk.Label(message_frame, text=f"{item['sender']}: {item['contents']}", font=("Arial", 12), bg="white")
+                    reply_button = tk.Button(text="Reply")
+                    reply_button.pack(padx=5)
+                    message_label.pack(side="left")
+                    buy_button = tk.Button(
+                    message_frame, text="Reply", bg="white", fg="black",
+                    command= self.reply_message(self.message_contents))
+                    buy_button.pack(side="right")
+            else:
+                message_label = tk.Label(message_frame, text=f"{item['sender']}: {item['contents']}     Seen by: {item['receiver']} Reply:  {item['reply']}", font=("Arial", 12), bg="white")
+                message_label.pack(side="left")
+        else:
+            for item in self.show_messages:
+                message_frame = tk.Frame(message_window, bg="black", pady=5)
+                message_frame.pack(fill="x", pady=5)
+                if item['receiver'] == None:
+                    if username == {item['sender']}:
+                        message_label = tk.Label(message_frame, text=f"{item['sender']}: {item['contents']}", font=("Arial", 12), bg="white")
+                        message_label.pack(side="left")
+                else:
+                    if username == {item['sender']}:
+                        message_label = tk.Label(message_frame, text=f"{item['sender']}: {item['contents']}     Seen by: {item['receiver']} Reply:  {item['reply']}", font=("Arial", 12), bg="white")
+                        message_label.pack(side="left")
+    
+
+
+
+    def fetch_messages(self):
+        try:
+            #connect to the database
+            connection = mysql.connector.connect(
+            host =  "localhost",                 #replace with your own info
+            user = "root",                  #replace with your own info
+            password = "root",          #replace with your own info
+            database = "malldata"           #replace with your own info
+            )
+            
+            cursor = connection.cursor(dictionary=True)
+            cursor.execute("SELECT id, sender, contents, receiver, reply FROM messages")
+            items = cursor.fetchall()
+            connection.close()
+            return items
+        except mysql.connector.Error as err:
+            messagebox.showerror("Database Error", f"Error: {err}")
+            return []
