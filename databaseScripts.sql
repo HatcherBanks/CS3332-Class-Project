@@ -34,3 +34,13 @@ CREATE TABLE Customer (
 -- example user
 INSERT INTO Customer (customerID, customerFirstName, customerLastName, email, username, password) VALUES
 ('123', 'Admin', 'User', 'admin@example.com', 'admin', 'admin123');
+
+--messages
+CREATE TABLE `messages` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `sender` varchar(45) NOT NULL,
+  `contents` varchar(100) NOT NULL,
+  `receiver` varchar(45) DEFAULT NULL,
+  `reply` varchar(45) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+)
