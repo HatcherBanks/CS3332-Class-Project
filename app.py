@@ -6,10 +6,10 @@ import mysql.connector
 
 def get_db_connection():
     return mysql.connector.connect(
-        host="",
-        user="",
-        password="",
-        database=""
+        host="127.0.0.1",
+        user="root",
+        password="11Buddy2003",
+        database="cs3332_project"
     )
 
 class CatalogPage:
@@ -17,10 +17,11 @@ class CatalogPage:
         self.root = root
         self.root.title("Shopping Mall")
         self.root.geometry("1080x720+0+0")
+        self.username = username
+        self.password = password
         
         self.cart = []
         self.catalog_items = self.fetch_catalog_items()
-        
         self.is_admin = self.check_admin_credentials(username, password)
 
         #content frame
@@ -56,6 +57,9 @@ class CatalogPage:
         
         self.display_catalog()
         
+        self.contents = tk.Entry(self.frame)
+        self.contents.pack(pady=20)
+        
     def check_admin_credentials(self, username, password):
         try:
             admin_username = "admin"
@@ -88,6 +92,65 @@ class CatalogPage:
                 command=lambda item=item: self.add_to_cart(item)
             )
             buy_button.pack(side="right")
+
+        self.message_button = tk.Button(
+            self.frame, text="Inbox",
+            command=self.view_messages
+        )
+        self.message_button.pack(padx=5, pady=10)
+
+
+    def view_messages(self):
+        if not self.username:
+            messagebox.showerror("Error", "Username is required to view messages.")
+            return
+        
+        message_window = tk.Toplevel(self.root)
+        message_window.title("Inbox")
+        message_window.geometry("1080x720")
+
+        messages = self.fetch_messages()
+        for msg in messages:
+            message_label = tk.Label(
+                message_window,
+                text=f"From: {msg['sender']}\n{msg['contents']}",
+                wraplength=700,
+                justify="left"
+            )
+            message_label.pack(pady=10)
+            
+        compose_button = tk.Button(message_window, text="Compose", 
+            command=lambda: self.send_message(self.username, self.contents.get())
+    )
+        compose_button.pack(pady=10)
+
+            
+    def send_message(self, username, contents):
+        try:
+            connection = get_db_connection()
+            cursor = connection.cursor()
+            cursor.execute("INSERT INTO messages (sender, contents) VALUES (%s, %s)", (username, contents))
+            connection.commit()
+            cursor.close()
+            connection.close()
+            messagebox.showinfo("Success", "Message sent successfully!")
+        except mysql.connector.Error as err:
+            messagebox.showerror("Error", f"Database Error: {err}")
+
+    
+    def fetch_messages(self):
+        try:
+        #connect to the database
+            connection = get_db_connection()
+                
+            cursor = connection.cursor(dictionary=True)
+            cursor.execute("SELECT id, sender, contents, receiver, reply FROM messages")
+            items = cursor.fetchall()
+            connection.close()
+            return items
+        except mysql.connector.Error as err:
+                messagebox.showerror("Database Error", f"Error: {err}")
+                return []
 
         
     def like_item(self, item):
@@ -128,15 +191,9 @@ class CatalogPage:
         view_cart_button.pack(pady=20)
         
     def sort_catalog(self):
-        try:
-            with get_db_connection as connection:
-                cursor = connection.cursor(dictionary=True)
-                cursor.execute("SELECT name, price, like FROM catalog_items")
-                return cursor.fetchall()
-        
-        except mysql.connector.Error as err:
-            messagebox.showerror("Database Error", f"Error: {err}")
-            return []
+        self.catalog_items.sort(key=lambda x: x.get('likes', 0), reverse=True)
+        self.refresh_catalog_display()
+
 
     #admin functionalities
     def add_item_window(self):
@@ -188,7 +245,7 @@ class CatalogPage:
             cursor.execute("SELECT COUNT(*) FROM catalog_items WHERE name = %s", (name,))
             result = cursor.fetchone()
         
-            if result[0] > 0:  # If the count is greater than 0, the item exists
+            if result[0] > 0:
                 messagebox.showerror("Error", "Item already exists in the catalog.")
                 cursor.close()
                 connection.close()
