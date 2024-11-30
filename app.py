@@ -6,10 +6,10 @@ import mysql.connector
 
 def get_db_connection():
     return mysql.connector.connect(
-        host="127.0.0.1",
-        user="root",
-        password="11Buddy2003",
-        database="cs3332_project"
+        host="",
+        user="",
+        password="",
+        database=""
     )
 
 class CatalogPage:
